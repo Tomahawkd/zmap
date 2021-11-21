@@ -39,8 +39,8 @@ void init_modules() {
 	probe_modules = array_list_new(fn_free_module);
 	output_modules = array_list_new(fn_free_module);
 
-	add_probe_modules(internal_probe_modules, 9);
-	add_output_modules(internal_output_modules, 2);
+	add_probe_modules(internal_probe_modules, sizeof(internal_probe_modules) / sizeof(probe_module_t *));
+	add_output_modules(internal_output_modules, sizeof(internal_output_modules) / sizeof(output_module_t *));
 }
 
 #define MODULE_FUNCTION_IMPL(NAME) \
