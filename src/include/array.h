@@ -6,15 +6,21 @@
 #define ZMAP_ARRAY_H
 
 typedef struct array_t {
-	void **content;
+	void * *content;
 	int type_size;
 	int capacity;
 	int size;
 } ARRAY;
 
-ARRAY *create_array(int type_size, int capacity);
+ARRAY *new_default_array(int type_size);
+
+ARRAY *new_array(int type_size, int capacity);
 
 int add_item(ARRAY*, void *);
+
+void *get_item(ARRAY*, int index);
+
+void *remove_item(ARRAY*, int index);
 
 void free_array(ARRAY *);
 
