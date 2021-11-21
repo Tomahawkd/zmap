@@ -4,4 +4,4 @@ include_directories(
         ${PROJECT_SOURCE_DIR}/extension
 )
 
-add_library(test SHARED module_test.c)
+add_library(test SHARED module_test.c entry.c)

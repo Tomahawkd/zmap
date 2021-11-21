@@ -12,7 +12,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <unistd.h>
-#include <string.h>
 #include <assert.h>
 
 #include "includes.h"
@@ -25,8 +24,6 @@
 
 #define ZMAP_TCP_SYNSCAN_TCP_HEADER_LEN 24
 #define ZMAP_TCP_SYNSCAN_PACKET_LEN 58
-
-probe_module_t module_tcp_synscan;
 
 static uint16_t num_ports;
 static port_h_t target_port;
@@ -216,7 +213,7 @@ static fielddef_t fields[] = {
     ICMP_FIELDSET_FIELDS,
 };
 
-probe_module_t module_test = {
+static probe_module_t module_test = {
     .name = "test",
     .max_packet_length = ZMAP_TCP_SYNSCAN_PACKET_LEN,
     .pcap_filter = "(tcp && tcp[13] & 4 != 0 || tcp[13] == 18) || icmp",
@@ -238,11 +235,6 @@ probe_module_t module_test = {
     .numfields = sizeof(fields) / sizeof(fields[0])
 };
 
-INIT_FUNCTION() {
-	probe_module_t *pointer = &module_test;
-	add_probe_modules(&pointer, 1);
-}
-
-DEINIT_FUNCTION() {
-
+probe_module_t *MODULE_TCP_SYN() {
+	return &module_test;
 }
