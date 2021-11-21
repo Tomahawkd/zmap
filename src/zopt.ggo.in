@@ -27,7 +27,9 @@ option "allowlist-file"         w "File of subnets to constrain scan to, in CIDR
 option "list-of-ips-file"       I "List of individual addresses to scan in random order. Use --white-list file unless >1 million IPs"
     typestr="path"
     optional string
-
+option "extension"              - "extension library path"
+    typestr="path"
+    optional string
 
 section "Scan Options"
 
