@@ -24,7 +24,7 @@
 #define ZMAP_TCP_SYNSCAN_TCP_HEADER_LEN 24
 #define ZMAP_TCP_SYNSCAN_PACKET_LEN 58
 
-probe_module_t module_tcp_synscan;
+static probe_module_t module_tcp_synscan;
 
 static uint16_t num_ports;
 static port_h_t target_port;
@@ -214,7 +214,7 @@ static fielddef_t fields[] = {
     ICMP_FIELDSET_FIELDS,
 };
 
-probe_module_t module_tcp_synscan = {
+static probe_module_t module_tcp_synscan = {
     .name = "tcp_synscan",
     .max_packet_length = ZMAP_TCP_SYNSCAN_PACKET_LEN,
     .pcap_filter = "(tcp && tcp[13] & 4 != 0 || tcp[13] == 18) || icmp",
@@ -235,3 +235,7 @@ probe_module_t module_tcp_synscan = {
     .fields = fields,
     .numfields = sizeof(fields) / sizeof(fields[0])
 };
+
+probe_module_t *MODULE_TCP_SYNACKSCAN() {
+	return &module_tcp_synscan;
+}

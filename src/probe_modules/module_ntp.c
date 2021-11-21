@@ -23,7 +23,7 @@
 #define MAX_NTP_PAYLOAD_LEN 1472
 #define ICMP_UNREACH_HEADER_SIZE 8
 
-probe_module_t module_ntp;
+static probe_module_t module_ntp;
 
 static int num_ports;
 
@@ -262,7 +262,7 @@ static fielddef_t fields[] = {
      .desc = "local time which reply departed service host for client"},
 };
 
-probe_module_t module_ntp = {.name = "ntp",
+static probe_module_t module_ntp = {.name = "ntp",
 			     .max_packet_length = 0, // set in init
 			     .pcap_filter = "udp || icmp",
 			     .pcap_snaplen = 1500,
@@ -277,3 +277,7 @@ probe_module_t module_ntp = {.name = "ntp",
 			     .output_type = OUTPUT_TYPE_STATIC,
 			     .fields = fields,
 			     .numfields = sizeof(fields) / sizeof(fields[0])};
+
+probe_module_t *MODULE_NTP() {
+	return &module_ntp;
+}

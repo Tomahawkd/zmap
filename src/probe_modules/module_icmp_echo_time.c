@@ -26,7 +26,7 @@
 #define ICMP_SMALLEST_SIZE 5
 #define ICMP_TIMXCEED_UNREACH_HEADER_SIZE 8
 
-probe_module_t module_icmp_echo_time;
+static probe_module_t module_icmp_echo_time;
 
 struct icmp_payload_for_rtt {
 	uint32_t sent_tv_sec;
@@ -231,7 +231,7 @@ static fielddef_t fields[] = {
      .type = "int",
      .desc = "did probe module classify response as success"}};
 
-probe_module_t module_icmp_echo_time = {
+static probe_module_t module_icmp_echo_time = {
     .name = "icmp_echo_time",
     .max_packet_length = 62,
     .pcap_filter = "icmp and icmp[0]!=8",
@@ -246,3 +246,7 @@ probe_module_t module_icmp_echo_time = {
     .output_type = OUTPUT_TYPE_STATIC,
     .fields = fields,
     .numfields = 9};
+
+probe_module_t *MODULE_ICMP_ECHO_TIME() {
+	return &module_icmp_echo_time;
+}

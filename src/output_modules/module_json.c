@@ -26,9 +26,10 @@
 
 #include <json.h>
 
-#include "../../lib/logger.h"
+#include "logger.h"
 
 #include "output_modules.h"
+#include "module_list.h"
 
 static FILE *file = NULL;
 
@@ -142,7 +143,7 @@ int print_json_fieldset(fieldset_t *fs)
 	return EXIT_SUCCESS;
 }
 
-output_module_t module_json_file = {
+static output_module_t module_json_file = {
     .name = "json",
     .init = &json_output_file_init,
     .start = NULL,
@@ -157,3 +158,8 @@ output_module_t module_json_file = {
 	"but rather includes all received packets. Fields can be controlled by \n"
 	"setting --output-fields. Filtering out failures and duplicate pakcets can \n"
 	"be achieved by setting an --output-filter."};
+
+
+output_module_t *MODULE_JSON() {
+	return &module_json_file;
+}

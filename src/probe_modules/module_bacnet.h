@@ -17,8 +17,6 @@
 
 #include "probe_modules.h"
 
-extern probe_module_t module_bacnet;
-
 struct __attribute__((__packed__)) bacnet_vlc {
 	uint8_t type;
 	uint8_t function;

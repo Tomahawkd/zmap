@@ -71,7 +71,7 @@ const unsigned char charset_all[257] = {
 
 static int num_ports;
 
-probe_module_t module_udp;
+static probe_module_t module_udp;
 
 // Field definitions for template parsing and displaying usage
 static uint32_t udp_num_template_field_types = 12;
@@ -831,7 +831,7 @@ static fielddef_t fields[] = {
     ICMP_FIELDSET_FIELDS,
 };
 
-probe_module_t module_udp = {
+static probe_module_t module_udp = {
     .name = "udp",
     .max_packet_length = 0, // set in init
     .pcap_filter = "udp || icmp",
@@ -850,3 +850,7 @@ probe_module_t module_udp = {
 		"and templates with template:/path_to_template_file.",
     .fields = fields,
     .numfields = sizeof(fields) / sizeof(fields[0])};
+
+probe_module_t *MODULE_UDP() {
+	return &module_udp;
+}

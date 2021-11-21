@@ -21,6 +21,7 @@
 #include "fieldset.h"
 
 #include "output_modules.h"
+#include "module_list.h"
 
 static FILE *file = NULL;
 
@@ -109,7 +110,7 @@ int csv_process(fieldset_t *fs)
 	return EXIT_SUCCESS;
 }
 
-output_module_t module_csv_file = {
+static output_module_t module_csv_file = {
     .name = "csv",
     .init = &csv_init,
     .start = NULL,
@@ -125,3 +126,7 @@ output_module_t module_csv_file = {
 	"setting --output-fields. Filtering out failures and duplicate packets can "
 	"be achieved by setting an --output-filter."
 };
+
+output_module_t *MODULE_CSV() {
+	return &module_csv_file;
+}

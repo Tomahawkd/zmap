@@ -28,7 +28,7 @@ static const char *upnp_query = "M-SEARCH * HTTP/1.1\r\n"
 				"ST:upnp:rootdevice\r\n"
 				"Man:\"ssdp:discover\"\r\nMX:3\r\n\r\n";
 
-probe_module_t module_upnp;
+static probe_module_t module_upnp;
 
 static int num_ports;
 
@@ -250,7 +250,7 @@ static fielddef_t fields[] = {
     ICMP_FIELDSET_FIELDS,
     {.name = "data", .type = "binary", .desc = "UDP payload"}};
 
-probe_module_t module_upnp = {
+static probe_module_t module_upnp = {
     .name = "upnp",
     .max_packet_length = 139,
     .pcap_filter = "udp || icmp",
@@ -272,3 +272,7 @@ probe_module_t module_upnp = {
 		"is considered a failed response.",
     .fields = fields,
     .numfields = 18};
+
+probe_module_t *MODULE_UPNP() {
+	return &module_upnp;
+}

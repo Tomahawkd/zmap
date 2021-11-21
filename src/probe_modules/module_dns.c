@@ -76,7 +76,7 @@
 typedef uint8_t bool;
 
 // zmap boilerplate
-probe_module_t module_dns;
+static probe_module_t module_dns;
 static int num_ports;
 
 const char default_domain[] = "www.google.com";
@@ -1064,7 +1064,7 @@ static fielddef_t fields[] = {
     {.name = "raw_data", .type = "binary", .desc = "UDP payload"},
 };
 
-probe_module_t module_dns = {
+static probe_module_t module_dns = {
     .name = "dns",
     .max_packet_length = 0, // set in init
     .pcap_filter = "udp || icmp",
@@ -1092,3 +1092,7 @@ probe_module_t module_dns = {
 	"output in raw form."
 
 };
+
+probe_module_t *MODULE_DNS() {
+	return &module_dns;
+}

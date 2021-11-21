@@ -13,17 +13,17 @@
 #include <unistd.h>
 #include <string.h>
 
-#include "../../lib/includes.h"
+#include "includes.h"
 #include "packet.h"
 #include "probe_modules.h"
 #include "module_bacnet.h"
 #include "module_udp.h"
 
+#include "module_list.h"
+
 #define ICMP_UNREACH_HEADER_SIZE 8
 
 #define ZMAP_BACNET_PACKET_LEN (sizeof(struct ether_header) + sizeof(struct ip) + sizeof(struct udphdr) + 0x11)
-
-probe_module_t module_bacnet;
 
 static int num_ports;
 
@@ -171,7 +171,7 @@ static fielddef_t fields[] = {
     ICMP_FIELDSET_FIELDS,
 };
 
-probe_module_t module_bacnet = {
+static probe_module_t module_bacnet = {
     .name = "bacnet",
     .max_packet_length = ZMAP_BACNET_PACKET_LEN,
     .pcap_filter = "udp || icmp",
@@ -187,3 +187,7 @@ probe_module_t module_bacnet = {
     .output_type = OUTPUT_TYPE_STATIC,
     .fields = fields,
     .numfields = sizeof(fields) / sizeof(fields[0])};
+
+probe_module_t *MODULE_BACNET() {
+	return &module_bacnet;
+}

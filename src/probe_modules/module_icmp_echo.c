@@ -28,7 +28,7 @@
 #define ICMP_MAX_PAYLOAD_LEN 1458
 #define ICMP_TIMXCEED_UNREACH_HEADER_SIZE 8
 
-probe_module_t module_icmp_echo;
+static probe_module_t module_icmp_echo;
 
 const char *icmp_usage_error =
 		"unknown ICMP probe specification (expected file:/path or text:STRING or hex:01020304)";
@@ -311,7 +311,7 @@ static fielddef_t fields[] = {
 	 .desc = "did probe module classify response as success"},
 	{.name = "data", .type = "binary", .desc = "ICMP payload"}};
 
-probe_module_t module_icmp_echo = {.name = "icmp_echoscan",
+static probe_module_t module_icmp_echo = {.name = "icmp_echoscan",
 				   .max_packet_length = 48,
 				   .pcap_filter = "icmp and icmp[0]!=8",
 				   .pcap_snaplen = 96,
@@ -332,3 +332,7 @@ probe_module_t module_icmp_echo = {.name = "icmp_echoscan",
 				   .output_type = OUTPUT_TYPE_STATIC,
 				   .fields = fields,
 				   .numfields = 7};
+
+probe_module_t *MODULE_ICMP_ECHO() {
+	return &module_icmp_echo;
+}

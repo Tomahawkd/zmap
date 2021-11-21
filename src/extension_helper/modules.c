@@ -7,10 +7,10 @@
 #include "xalloc.h"
 #include "logger.h"
 #include "array.h"
+#include "output_modules/module_list.h"
+#include "probe_modules/module_list.h"
 
 #include <dlfcn.h>
-#include <string.h>
-#include <stdio.h>
 
 static void *lib_pointer = NULL;
 static void (*load_ext)(void);
@@ -18,38 +18,24 @@ static void (*unload_ext)(void);
 static ARRAY *probe_modules = NULL;
 static ARRAY* output_modules = NULL;
 
-extern probe_module_t module_tcp_synscan;
-extern probe_module_t module_tcp_synackscan;
-extern probe_module_t module_icmp_echo;
-extern probe_module_t module_icmp_echo_time;
-extern probe_module_t module_udp;
-extern probe_module_t module_ntp;
-extern probe_module_t module_upnp;
-extern probe_module_t module_dns;
-extern probe_module_t module_bacnet;
-
-static probe_module_t *internal_probe_modules[] = {
-    &module_tcp_synscan, &module_tcp_synackscan, &module_icmp_echo,
-    &module_icmp_echo_time, &module_udp, &module_ntp, &module_upnp, &module_dns,
-    &module_bacnet
-};
-static const int internal_probe_count = 9;
-
-extern output_module_t module_csv_file;
-extern output_module_t module_json_file;
-
-static output_module_t *internal_output_modules[] = {
-    &module_csv_file,
-    &module_json_file,
-};
-static const int internal_output_count = 2;
-
 void init_modules() {
-	probe_modules = create_array(sizeof(probe_module_t*), 16);
-	output_modules = create_array(sizeof(output_module_t*), 8);
 
-	add_probe_modules(internal_probe_modules, internal_probe_count);
-	add_output_modules(internal_output_modules, internal_output_count);
+	probe_module_t *internal_probe_modules[] = {
+	    MODULE_TCP_SYNSCAN(), MODULE_TCP_SYNACKSCAN(), MODULE_ICMP_ECHO(),
+	    MODULE_ICMP_ECHO_TIME(), MODULE_UDP(), MODULE_NTP(), MODULE_UPNP(), MODULE_DNS(),
+	    MODULE_BACNET(),
+	};
+
+	output_module_t *internal_output_modules[] = {
+	    MODULE_CSV(),
+	    MODULE_JSON(),
+	};
+
+	probe_modules = new_array(sizeof(probe_module_t*), 16);
+	output_modules = new_array(sizeof(output_module_t*), 8);
+
+	add_probe_modules(internal_probe_modules, 9);
+	add_output_modules(internal_output_modules, 2);
 }
 
 void add_probe_modules(probe_module_t **modules, int num) {
