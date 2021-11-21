@@ -115,6 +115,7 @@ endif()
 
 add_subdirectory(lib)
 add_subdirectory(src)
+add_subdirectory(extension)
 
 # Install conf files
 if(RESPECT_INSTALL_PREFIX_CONFIG)
