@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#include "../../lib/includes.h"
-#include "../../lib/blocklist.h"
-#include "../state.h"
+#include "includes.h"
+#include "blocklist.h"
+#include "state.h"
 
 #ifndef PACKET_H
 #define PACKET_H

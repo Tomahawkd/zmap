@@ -9,8 +9,8 @@
 #ifndef OUTPUT_MODULES_H
 #define OUTPUT_MODULES_H
 
-#include "../state.h"
-#include "../fieldset.h"
+#include "state.h"
+#include "fieldset.h"
 
 #define NO_DYNAMIC_SUPPORT 0
 #define DYNAMIC_SUPPORT 1
@@ -38,8 +38,5 @@ typedef struct output_module {
 	const char *helptext;
 } output_module_t;
 
-output_module_t *get_output_module_by_name(const char *);
-
-void print_output_modules(void);
 
 #endif // HEADER_OUTPUT_MODULES_H
