@@ -15,11 +15,13 @@
 #include <string.h>
 #include <assert.h>
 
-#include "../../lib/includes.h"
-#include "../fieldset.h"
+#include "includes.h"
+#include "fieldset.h"
 #include "probe_modules.h"
 #include "packet.h"
 #include "validate.h"
+
+#include "api/modules.h"
 
 #define ZMAP_TCP_SYNSCAN_TCP_HEADER_LEN 24
 #define ZMAP_TCP_SYNSCAN_PACKET_LEN 58
@@ -214,8 +216,8 @@ static fielddef_t fields[] = {
     ICMP_FIELDSET_FIELDS,
 };
 
-probe_module_t module_tcp_synscan = {
-    .name = "tcp_synscan",
+probe_module_t module_test = {
+    .name = "test",
     .max_packet_length = ZMAP_TCP_SYNSCAN_PACKET_LEN,
     .pcap_filter = "(tcp && tcp[13] & 4 != 0 || tcp[13] == 18) || icmp",
     .pcap_snaplen = 96,
@@ -235,3 +237,12 @@ probe_module_t module_tcp_synscan = {
     .fields = fields,
     .numfields = sizeof(fields) / sizeof(fields[0])
 };
+
+INIT_FUNCTION() {
+	probe_module_t *pointer = &module_test;
+	add_probe_modules(&pointer, 1);
+}
+
+DEINIT_FUNCTION() {
+
+}
