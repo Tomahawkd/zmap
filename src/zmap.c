@@ -23,13 +23,13 @@
 
 #include <pthread.h>
 
-#include "../lib/includes.h"
-#include "../lib/blocklist.h"
-#include "../lib/logger.h"
-#include "../lib/random.h"
-#include "../lib/util.h"
-#include "../lib/xalloc.h"
-#include "../lib/pbm.h"
+#include "includes.h"
+#include "blocklist.h"
+#include "logger.h"
+#include "random.h"
+#include "util.h"
+#include "xalloc.h"
+#include "pbm.h"
 
 #include "aesrand.h"
 #include "zopt.h"
@@ -42,8 +42,9 @@
 #include "summary.h"
 #include "utility.h"
 
-#include "output_modules/output_modules.h"
-#include "probe_modules/probe_modules.h"
+#include "output_modules.h"
+#include "probe_modules.h"
+#include "extension.h"
 
 #ifdef PFRING
 #include <pfring_zc.h>
@@ -388,6 +389,14 @@ int main(int argc, char *argv[])
 	// parse the provided probe and output module s.t. that we can support
 	// other command-line helpers (e.g. probe help)
 	log_debug("zmap", "requested ouput-module: %s", args.output_module_arg);
+
+	// initialize internal modules
+	init_modules();
+	// load extension
+	if (args.extension_arg) {
+		log_debug("zmap", "extension library path: %s", args.extension_arg);
+		load_library(args.extension_arg);
+	}
 
 	// ZMap's default behavior is to provide a simple file of the unique IP
 	// addresses that responded successfully. We only use this simple "default"
@@ -937,5 +946,9 @@ int main(int argc, char *argv[])
 
 	cmdline_parser_free(&args);
 	free(params);
+
+	free_modules();
+	close_library();
+
 	return EXIT_SUCCESS;
 }
