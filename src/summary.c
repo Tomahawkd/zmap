@@ -15,13 +15,13 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "../lib/includes.h"
-#include "../lib/logger.h"
-#include "../lib/blocklist.h"
+#include "includes.h"
+#include "logger.h"
+#include "blocklist.h"
 
 #include "state.h"
-#include "probe_modules/probe_modules.h"
-#include "output_modules/output_modules.h"
+#include "probe_modules.h"
+#include "output_modules.h"
 
 #define STRTIME_LEN 1024
 

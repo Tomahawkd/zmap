@@ -6,8 +6,8 @@
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
  */
 
-#include "../state.h"
-#include "../fieldset.h"
+#include "state.h"
+#include "fieldset.h"
 
 #ifndef MODULE_NTP_H
 #define MODULE_NTP_H

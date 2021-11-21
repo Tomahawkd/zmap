@@ -19,18 +19,18 @@
 #include <assert.h>
 #include <signal.h>
 
-#include "../lib/includes.h"
-#include "../lib/logger.h"
-#include "../lib/random.h"
-#include "../lib/blocklist.h"
-#include "../lib/lockfd.h"
-#include "../lib/pbm.h"
+#include "includes.h"
+#include "logger.h"
+#include "random.h"
+#include "blocklist.h"
+#include "lockfd.h"
+#include "pbm.h"
 
 #include "aesrand.h"
 #include "get_gateway.h"
 #include "iterator.h"
-#include "probe_modules/packet.h"
-#include "probe_modules/probe_modules.h"
+#include "packet.h"
+#include "probe_modules.h"
 #include "shard.h"
 #include "state.h"
 #include "validate.h"

@@ -13,10 +13,10 @@
 #include <string.h>
 #include <assert.h>
 
-#include "../../lib/includes.h"
-#include "../../lib/logger.h"
-#include "../../lib/xalloc.h"
-#include "../fieldset.h"
+#include "includes.h"
+#include "logger.h"
+#include "xalloc.h"
+#include "fieldset.h"
 #include "probe_modules.h"
 #include "packet.h"
 #include "module_udp.h"

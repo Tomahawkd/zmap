@@ -9,7 +9,7 @@
 #ifndef ZMAP_SEND_LINUX_H
 #define ZMAP_SEND_LINUX_H
 
-#include "../lib/includes.h"
+#include "includes.h"
 #include <sys/ioctl.h>
 
 #include <netpacket/packet.h>

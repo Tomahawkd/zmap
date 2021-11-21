@@ -29,7 +29,6 @@
 #include "../../lib/logger.h"
 
 #include "output_modules.h"
-#include "../probe_modules/probe_modules.h"
 
 static FILE *file = NULL;
 

@@ -12,49 +12,13 @@
 #include <time.h>
 #include <sys/time.h>
 
-#include "../../lib/includes.h"
-#include "../../lib/logger.h"
-#include "../../lib/xalloc.h"
-#include "../fieldset.h"
+#include "includes.h"
+#include "logger.h"
+#include "xalloc.h"
+#include "fieldset.h"
 #include "probe_modules.h"
 #include "packet.h"
-
-extern probe_module_t module_tcp_synscan;
-extern probe_module_t module_tcp_synackscan;
-extern probe_module_t module_icmp_echo;
-extern probe_module_t module_icmp_echo_time;
-extern probe_module_t module_udp;
-extern probe_module_t module_ntp;
-extern probe_module_t module_upnp;
-extern probe_module_t module_dns;
-extern probe_module_t module_bacnet;
-// ADD YOUR MODULE HERE
-
-probe_module_t *probe_modules[] = {
-    &module_tcp_synscan, &module_tcp_synackscan, &module_icmp_echo,
-    &module_icmp_echo_time, &module_udp, &module_ntp, &module_upnp, &module_dns,
-    &module_bacnet
-    // ADD YOUR MODULE HERE
-};
-
-probe_module_t *get_probe_module_by_name(const char *name)
-{
-	int len = (int)(sizeof(probe_modules) / sizeof(probe_modules[0]));
-	for (int i = 0; i < len; i++) {
-		if (!strcmp(probe_modules[i]->name, name)) {
-			return probe_modules[i];
-		}
-	}
-	return NULL;
-}
-
-void print_probe_modules(void)
-{
-	int len = (int)(sizeof(probe_modules) / sizeof(probe_modules[0]));
-	for (int i = 0; i < len; i++) {
-		printf("%s\n", probe_modules[i]->name);
-	}
-}
+#include "extension.h"
 
 void fs_add_ip_fields(fieldset_t *fs, struct ip *ip)
 {

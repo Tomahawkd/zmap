@@ -9,7 +9,7 @@
 #ifndef ZMAP_SEND_PFRING_H
 #define ZMAP_SEND_PFRING_H
 
-#include "../lib/includes.h"
+#include "includes.h"
 #include <sys/ioctl.h>
 
 #if defined(ZMAP_SEND_BSD_H) || defined(ZMAP_SEND_LINUX_H)

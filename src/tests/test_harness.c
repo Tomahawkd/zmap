@@ -39,8 +39,8 @@
 #include "filter.h"
 #include "summary.h"
 
-#include "output_modules/output_modules.h"
-#include "probe_modules/probe_modules.h"
+#include "output_modules.h"
+#include "probe_modules.h"
 #include "output_modules/module_json.h"
 #include "ztopt.h"
 

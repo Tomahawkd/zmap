@@ -15,8 +15,8 @@
 #include <string.h>
 #include <assert.h>
 
-#include "../../lib/includes.h"
-#include "../fieldset.h"
+#include "includes.h"
+#include "fieldset.h"
 #include "probe_modules.h"
 #include "packet.h"
 #include "validate.h"

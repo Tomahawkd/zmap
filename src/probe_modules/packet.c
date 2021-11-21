@@ -11,11 +11,11 @@
 #include <string.h>
 #include <assert.h>
 
-#include "../../lib/includes.h"
-#include "../../lib/xalloc.h"
+#include "includes.h"
+#include "xalloc.h"
 #include "packet.h"
 
-#include "../state.h"
+#include "state.h"
 
 #ifndef NDEBUG
 void print_macaddr(struct ifreq *i)

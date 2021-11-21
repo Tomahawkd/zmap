@@ -17,9 +17,9 @@
 #include <string.h>
 #include <sys/time.h>
 
-#include "../../lib/includes.h"
+#include "includes.h"
 #include "probe_modules.h"
-#include "../fieldset.h"
+#include "fieldset.h"
 #include "packet.h"
 #include "validate.h"
 

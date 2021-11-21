@@ -11,8 +11,8 @@
 #include <string.h>
 #include <errno.h>
 
-#include "../lib/includes.h"
-#include "../lib/logger.h"
+#include "includes.h"
+#include "logger.h"
 
 sock_t get_dryrun_socket(void)
 {

@@ -10,9 +10,9 @@
 
 #include <assert.h>
 
-#include "../lib/includes.h"
-#include "../lib/logger.h"
-#include "../lib/pbm.h"
+#include "includes.h"
+#include "logger.h"
+#include "pbm.h"
 
 #include <pthread.h>
 #include <unistd.h>
@@ -22,8 +22,8 @@
 #include "validate.h"
 #include "fieldset.h"
 #include "expression.h"
-#include "probe_modules/probe_modules.h"
-#include "output_modules/output_modules.h"
+#include "probe_modules.h"
+#include "output_modules.h"
 
 static u_char fake_eth_hdr[65535];
 // bitmap of observed IP addresses

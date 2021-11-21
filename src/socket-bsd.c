@@ -10,8 +10,8 @@
 
 #include <errno.h>
 
-#include "../lib/includes.h"
-#include "../lib/logger.h"
+#include "includes.h"
+#include "logger.h"
 
 #include <sys/types.h>
 #include <sys/time.h>

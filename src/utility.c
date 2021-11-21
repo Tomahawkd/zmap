@@ -12,7 +12,7 @@
 #include <arpa/inet.h>
 
 #include "state.h"
-#include "../lib/logger.h"
+#include "logger.h"
 
 in_addr_t string_to_ip_address(char *t)
 {

@@ -15,8 +15,8 @@
 #include <pthread.h>
 #include <assert.h>
 
-#include "../lib/includes.h"
-#include "../lib/logger.h"
+#include "includes.h"
+#include "logger.h"
 
 #include <pcap.h>
 #include <pcap/pcap.h>
@@ -27,7 +27,7 @@
 #include "recv-internal.h"
 #include "state.h"
 
-#include "probe_modules/probe_modules.h"
+#include "probe_modules.h"
 
 #define PCAP_PROMISC 1
 #define PCAP_TIMEOUT 1000

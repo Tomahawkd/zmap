@@ -16,10 +16,10 @@
 #include <string.h>
 #include <assert.h>
 
-#include "../../lib/includes.h"
-#include "../../lib/xalloc.h"
+#include "includes.h"
+#include "xalloc.h"
 #include "probe_modules.h"
-#include "../fieldset.h"
+#include "fieldset.h"
 #include "packet.h"
 #include "logger.h"
 #include "validate.h"

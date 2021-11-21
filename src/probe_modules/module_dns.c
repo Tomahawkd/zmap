@@ -45,14 +45,14 @@
 #include <string.h>
 #include <assert.h>
 
-#include "../../lib/includes.h"
-#include "../../lib/random.h"
-#include "../../lib/xalloc.h"
+#include "includes.h"
+#include "random.h"
+#include "xalloc.h"
 #include "probe_modules.h"
 #include "packet.h"
 #include "logger.h"
 #include "module_udp.h"
-#include "../fieldset.h"
+#include "fieldset.h"
 
 #define DNS_PAYLOAD_LEN_LIMIT 512 // This is arbitrary
 #define UDP_HEADER_LEN 8

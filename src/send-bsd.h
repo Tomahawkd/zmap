@@ -14,7 +14,7 @@
 #include <sys/ioctl.h>
 #include <fcntl.h>
 
-#include "../lib/includes.h"
+#include "includes.h"
 
 #include <netinet/in.h>
 #include <net/bpf.h>

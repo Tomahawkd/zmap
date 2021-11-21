@@ -21,11 +21,11 @@
 #include <assert.h>
 #include <unistd.h>
 
-#include "../lib/includes.h"
-#include "../lib/blocklist.h"
-#include "../lib/logger.h"
-#include "../lib/random.h"
-#include "../lib/util.h"
+#include "includes.h"
+#include "blocklist.h"
+#include "logger.h"
+#include "random.h"
+#include "util.h"
 
 #include "iterator.h"
 #include "state.h"

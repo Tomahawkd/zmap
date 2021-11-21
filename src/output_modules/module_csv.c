@@ -17,8 +17,8 @@
 #include <assert.h>
 #include <inttypes.h>
 
-#include "../../lib/logger.h"
-#include "../fieldset.h"
+#include "logger.h"
+#include "fieldset.h"
 
 #include "output_modules.h"
 

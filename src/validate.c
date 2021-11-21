@@ -8,9 +8,9 @@
 
 #include <stdint.h>
 #include <assert.h>
-#include "../lib/rijndael-alg-fst.h"
-#include "../lib/random.h"
-#include "../lib/logger.h"
+#include "rijndael-alg-fst.h"
+#include "random.h"
+#include "logger.h"
 #include "validate.h"
 
 #define AES_ROUNDS 10

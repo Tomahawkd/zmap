@@ -11,8 +11,8 @@
 
 #include <gmp.h>
 
-#include "../lib/includes.h"
-#include "../lib/blocklist.h"
+#include "includes.h"
+#include "blocklist.h"
 #include "shard.h"
 #include "state.h"
 

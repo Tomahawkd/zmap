@@ -20,12 +20,12 @@
 #include <unistd.h>
 #include <signal.h>
 
-#include "../lib/lockfd.h"
-#include "../lib/logger.h"
-#include "../lib/queue.h"
-#include "../lib/util.h"
-#include "../lib/xalloc.h"
-#include "../lib/csv.h"
+#include "lockfd.h"
+#include "logger.h"
+#include "queue.h"
+#include "util.h"
+#include "xalloc.h"
+#include "csv.h"
 
 #include "topt.h"
 
