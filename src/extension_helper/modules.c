@@ -6,7 +6,7 @@
 #include "extension.h"
 #include "xalloc.h"
 #include "logger.h"
-#include "array.h"
+#include "arraylist.h"
 #include "output_modules/module_list.h"
 #include "probe_modules/module_list.h"
 
@@ -15,8 +15,13 @@
 static void *lib_pointer = NULL;
 static void (*load_ext)(void);
 static void (*unload_ext)(void);
-static ARRAY *probe_modules = NULL;
-static ARRAY* output_modules = NULL;
+
+// use json-c's arraylist
+static array_list *probe_modules = NULL;
+static array_list *output_modules = NULL;
+
+// dont need to free modules
+void fn_free_module(UNUSED void *data) {}
 
 void init_modules() {
 
@@ -31,68 +36,44 @@ void init_modules() {
 	    MODULE_JSON(),
 	};
 
-	probe_modules = new_array(sizeof(probe_module_t*), 16);
-	output_modules = new_array(sizeof(output_module_t*), 8);
+	probe_modules = array_list_new(fn_free_module);
+	output_modules = array_list_new(fn_free_module);
 
 	add_probe_modules(internal_probe_modules, 9);
 	add_output_modules(internal_output_modules, 2);
 }
 
-void add_probe_modules(probe_module_t **modules, int num) {
-	int i;
-	for (i = 0; i < num; ++i) {
-		add_item(probe_modules, modules[i]);
-	}
+#define MODULE_FUNCTION_IMPL(NAME) \
+void add_##NAME##s(NAME##_t **modules, int num) { \
+	int i; \
+	for (i = 0; i < num; ++i) { \
+		array_list_add(NAME##s, modules[i]); \
+	} \
+}                             \
+NAME##_t *get_##NAME##_by_name(const char *name) { \
+	array_list *arr = NAME##s; \
+	size_t len = arr->length; \
+        size_t i; \
+	for (i = 0; i < len; i++) { \
+		NAME##_t *m = (NAME##_t *) array_list_get_idx(arr, i); \
+		if (!strcmp(m->name, name)) { \
+			return m; \
+		} \
+	} \
+	return NULL; \
+}                             \
+void print_##NAME##s(void) {  \
+	array_list *arr = NAME##s; \
+	size_t len = arr->length; \
+	size_t i; \
+	for (i = 0; i < len; i++) { \
+		NAME##_t *m = (NAME##_t *) array_list_get_idx(arr, i); \
+		printf("%s\n", m->name); \
+	}\
 }
 
-probe_module_t *get_probe_module_by_name(const char *name)
-{
-	int len = probe_modules->size;
-	probe_module_t **arr = (probe_module_t **)probe_modules->content;
-	for (int i = 0; i < len; i++) {
-		if (!strcmp(arr[i]->name, name)) {
-			return arr[i];
-		}
-	}
-	return NULL;
-}
-
-void print_probe_modules(void)
-{
-	int len = probe_modules->size;
-	probe_module_t **arr = (probe_module_t **)probe_modules->content;
-	for (int i = 0; i < len; i++) {
-		printf("%s\n", arr[i]->name);
-	}
-}
-
-void add_output_modules(output_module_t **modules, int num) {
-	int i;
-	for (i = 0; i < num; ++i) {
-		add_item(output_modules, modules[i]);
-	}
-}
-
-output_module_t *get_output_module_by_name(const char *name)
-{
-	int num_modules = output_modules->size;
-	output_module_t **arr = (output_module_t **)output_modules->content;
-	for (int i = 0; i < num_modules; i++) {
-		if (!strcmp(arr[i]->name, name)) {
-			return arr[i];
-		}
-	}
-	return NULL;
-}
-
-void print_output_modules(void)
-{
-	int num_modules = output_modules->size;
-	output_module_t **arr = (output_module_t **)output_modules->content;
-	for (int i = 0; i < num_modules; i++) {
-		printf("%s\n", arr[i]->name);
-	}
-}
+MODULE_FUNCTION_IMPL(probe_module)
+MODULE_FUNCTION_IMPL(output_module)
 
 int load_library(const char* path) {
 
@@ -136,11 +117,11 @@ void close_library() {
 
 void free_modules() {
 	if (probe_modules) {
-		free_array(probe_modules);
+		array_list_free(probe_modules);
 	}
 
 	if (output_modules) {
-		free_array(output_modules);
+		array_list_free(output_modules);
 	}
 
 	unload_ext();

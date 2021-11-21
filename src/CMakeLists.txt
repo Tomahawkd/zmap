@@ -16,7 +16,6 @@ set(EXTRA_OUTPUT_MODULES
 
 set(EXTENSION_HELPERS
    extension_helper/modules.c
-   extension_helper/array.c
 )
 
 set(OUTPUT_MODULE_SOURCES

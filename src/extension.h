@@ -15,13 +15,11 @@ void close_library();
 
 void free_modules();
 
-probe_module_t *get_probe_module_by_name(const char *);
-void print_probe_modules(void);
+#define MODULE_FUNCTION_HDR(NAME) \
+NAME##_t *get_##NAME##_by_name(const char *name); \
+void print_##NAME##s(void);
 
-output_module_t *get_output_module_by_name(const char *);
-
-void print_output_modules(void);
-
-
+MODULE_FUNCTION_HDR(probe_module)
+MODULE_FUNCTION_HDR(output_module)
 
 #endif //ZMAP_INTERNAL_EXTENSION_H
