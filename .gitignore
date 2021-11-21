@@ -38,3 +38,4 @@ src/ztests
 
 .idea
 cmake-build-*
+*.log
