@@ -2,8 +2,8 @@ include_directories(
     "${CMAKE_CURRENT_BINARY_DIR}"
     ${PROJECT_SOURCE_DIR}/lib
     ${PROJECT_SOURCE_DIR}/src
-    ${PROJECT_SOURCE_DIR}/src/output_modules
     ${PROJECT_SOURCE_DIR}/src/tests
+    ${PROJECT_SOURCE_DIR}/src/include
 )
 
 # ADD YOUR PROBE MODULE HERE
@@ -14,11 +14,15 @@ set(EXTRA_PROBE_MODULES
 set(EXTRA_OUTPUT_MODULES
 )
 
+set(EXTENSION_HELPERS
+   extension_helper/modules.c
+   extension_helper/array.c
+)
+
 set(OUTPUT_MODULE_SOURCES
     output_modules/module_csv.c
     output_modules/module_json.c
-    output_modules/output_modules.c
-)
+        )
 
 set(PROBE_MODULE_SOURCES
     probe_modules/module_icmp_echo.c
@@ -61,6 +65,7 @@ set(SOURCES
     ${EXTRA_OUTPUT_MODULES}
     ${PROBE_MODULE_SOURCES}
     ${OUTPUT_MODULE_SOURCES}
+    ${EXTENSION_HELPERS}
 )
 
 set(ZTESTSOURCES
@@ -219,6 +224,7 @@ target_link_libraries(
     pcap gmp m unistring
     ${DNET_LIBRARIES}
     ${JSON_LIBRARIES}
+    dl
 )
 
 target_link_libraries(
