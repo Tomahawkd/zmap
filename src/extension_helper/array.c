@@ -17,15 +17,12 @@ ARRAY *create_array(int type_size, int capacity) {
 }
 
 int add_item(ARRAY* array, void *item) {
-	void **new_content;
 	array->content[array->size] = item;
 	array->size++;
 
 	if (array->size == array->capacity) {
-		new_content = xmalloc(array->type_size * array->capacity * 2);
-		memcpy(new_content, array->content, array->type_size * array->capacity);
-		xfree(array->content);
-		array->content = new_content;
+		array->content = xrealloc(array->content, array->type_size * array->capacity * 2);
+		return -1;
 	}
 
 	return 0;
