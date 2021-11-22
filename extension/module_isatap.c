@@ -15,6 +15,12 @@
 
 static probe_module_t module_isatap;
 
+struct icmp6_chksum_st {
+	struct in6_addr ip6_src;      /* source address */
+	struct in6_addr ip6_dst;      /* destination address */
+	uint16_t ip6_payloadlen;   /* payload length */
+};
+
 //////////////////
 // send functions
 //////////////////
@@ -60,6 +66,10 @@ static int isatap_make_packet(void *buf, size_t *buf_len,
 	struct ip6_hdr *ipv6 = (struct ip6_hdr *) (&ip_header[1]);
 	struct nd_router_solicit *rs = (struct nd_router_solicit *) (&ipv6[1]);
 
+	size_t cksum_len = sizeof(struct icmp6_chksum_st) + sizeof(struct nd_router_solicit);
+	// cksum_len = 44, so there is no trailing zero for icmp6_chksum
+	struct icmp6_chksum_st *cksum = xmalloc(cksum_len);
+
 	// ipv4
 	ip_header->ip_src.s_addr = src_ip;
 	ip_header->ip_dst.s_addr = dst_ip;
@@ -76,10 +86,14 @@ static int isatap_make_packet(void *buf, size_t *buf_len,
 	ipv6->ip6_dst.s6_addr32[2] = htonl(0x00005efe);
 	ipv6->ip6_dst.s6_addr32[3] = dst_ip;
 
+	memcpy(&cksum->ip6_src, &ipv6->ip6_src, sizeof(struct in6_addr));
+	memcpy(&cksum->ip6_dst, &ipv6->ip6_dst, sizeof(struct in6_addr));
+	memcpy(&cksum->ip6_payloadlen, &ipv6->ip6_plen, sizeof(uint16_t));
+	memcpy(&cksum[1], rs, sizeof(struct nd_router_solicit));
+
 	rs->nd_rs_cksum = 0;
-	rs->nd_rs_cksum = icmp_checksum(
-	    (unsigned short *)ipv6,
-	    sizeof(struct ip6_hdr) + sizeof(struct nd_router_solicit));
+	rs->nd_rs_cksum = icmp_checksum((unsigned short *)cksum, cksum_len);
+	xfree(cksum);
 
 	ip_header->ip_sum = 0;
 	ip_header->ip_sum = zmap_ip_checksum((unsigned short *)ip_header);
@@ -134,9 +148,6 @@ static int isatap_validate_packet(const struct ip *ip_hdr, uint32_t len,
 	size_t opt_offset;
 	size_t opt_len;
 
-	uint16_t tmp_chksum;
-	uint16_t calculated_sum;
-
 	if (ip_hdr->ip_p != IPPROTO_IPV6) {
 		return PACKET_INVALID;
 	}
@@ -189,17 +200,6 @@ static int isatap_validate_packet(const struct ip *ip_hdr, uint32_t len,
 	if (opt_offset > opt_len) return PACKET_INVALID;
 	if (!has_prefix) return PACKET_INVALID;
 
-	tmp_chksum = ra->nd_ra_cksum;
-	ra->nd_ra_cksum = 0;
-	calculated_sum = icmp_checksum(
-	    (unsigned short *)ipv6,
-	    sizeof(struct ip6_hdr) + sizeof(struct nd_router_advert) + opt_len);
-	ra->nd_ra_cksum = tmp_chksum;
-
-	if (calculated_sum != ra->nd_ra_cksum) {
-		return PACKET_INVALID;
-	}
-
 	return PACKET_VALID;
 }
 
@@ -222,7 +222,6 @@ static int isatap_validate_packet(const struct ip *ip_hdr, uint32_t len,
 #define FIELD_ISATAP_MTU "isatap_mtu"
 
 #define NEED_FREE 1
-#define NO_NEED_FREE 0
 
 // upon success validation
 static void isatap_process_packet(const u_char *packet, UNUSED uint32_t len,
