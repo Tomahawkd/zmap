@@ -21,7 +21,7 @@ set(EXTENSION_HELPERS
 set(OUTPUT_MODULE_SOURCES
     output_modules/module_csv.c
     output_modules/module_json.c
-        )
+)
 
 set(PROBE_MODULE_SOURCES
     probe_modules/module_icmp_echo.c
