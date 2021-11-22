@@ -10,6 +10,9 @@
 #include "module_isatap.h"
 #include "packet.h"
 
+// suppress snprintf
+#pragma GCC diagnostic ignored "-Wformat"
+
 static probe_module_t module_isatap;
 
 //////////////////
@@ -24,19 +27,17 @@ static int isatap_thread_initialize(void *buf, macaddr_t *src,
 	struct ip *ip_header = (struct ip *) (&eth[1]);
 	struct ip6_hdr *ipv6 = (struct ip6_hdr *) (&ip_header[1]);
 	struct nd_router_solicit *rs = (struct nd_router_solicit *) (&ipv6[1]);
-	uint16_t ip_len = htons(sizeof(struct ip) +
-			     sizeof(struct ip6_hdr) +
-			     sizeof(struct nd_router_solicit));
-	uint16_t rs_len = htons(sizeof(struct nd_router_solicit));
 
 	memset(buf, 0, MAX_PACKET_SIZE);
 	make_eth_header(eth, src, gw);
-	make_ip_header(ip_header, IPPROTO_IPV6, ip_len);
+	make_ip_header(ip_header, IPPROTO_IPV6, htons(sizeof(struct ip) +
+						      sizeof(struct ip6_hdr) +
+						      sizeof(struct nd_router_solicit)));
 
 	// version(4), traffic class(8), flow id(20)
 	// 6_00_00000
 	ipv6->ip6_flow = 0x60000000;
-	ipv6->ip6_plen = rs_len;
+	ipv6->ip6_plen = htons(sizeof(struct nd_router_solicit));
 	ipv6->ip6_nxt = IPPROTO_ICMPV6;
 	// default hops
 	// reference: https://datatracker.ietf.org/doc/html/rfc4861#section-4.1
@@ -105,7 +106,7 @@ static void isatap_print_packet(FILE *fp, void *buf)
 		   "| payload length: %u | next header: %u | hop limit: %u "
 		   "| src: %04X:%04X:%04X:%04X:%04X:%04X:%04X:%04X "
 		   "| dst: %04X:%04X:%04X:%04X:%04X:%04X:%04X:%04X }\n",
-		ipv6->ip6_flow, ipv6->ip6_plen, ipv6->ip6_nxt, ipv6->ip6_hops,
+		ipv6->ip6_flow, ntohs(ipv6->ip6_plen), ipv6->ip6_nxt, ipv6->ip6_hops,
 		ipv6->ip6_src.s6_addr16[0], ipv6->ip6_src.s6_addr16[1],
 		ipv6->ip6_src.s6_addr16[2], ipv6->ip6_src.s6_addr16[3],
 		ipv6->ip6_src.s6_addr16[4], ipv6->ip6_src.s6_addr16[5],
@@ -127,7 +128,13 @@ static int isatap_validate_packet(const struct ip *ip_hdr, uint32_t len,
 {
 	struct ip6_hdr *ipv6;
 	struct nd_router_advert *ra;
-	struct nd_router_advert chksum;
+	struct nd_opt_hdr *opt;
+	struct nd_opt_hdr *c_opt;
+	int has_prefix = 0;
+	size_t opt_offset;
+	size_t opt_len;
+
+	uint16_t tmp_chksum;
 	uint16_t calculated_sum;
 
 	if (ip_hdr->ip_p != IPPROTO_IPV6) {
@@ -138,27 +145,57 @@ static int isatap_validate_packet(const struct ip *ip_hdr, uint32_t len,
 		return PACKET_INVALID;
 	}
 
+	// options are required
 	if ((4 * ip_hdr->ip_hl + sizeof(struct ip6_hdr)) +
-		sizeof(struct nd_router_advert) > len) {
+		sizeof(struct nd_router_advert) >= len) {
 		return PACKET_INVALID;
 	}
 
 	ipv6 = (struct ip6_hdr *) ((char *) ip_hdr + 4 * ip_hdr->ip_hl);
-	// TODO: more extensions until icmpv6
 	if (ipv6->ip6_nxt != IPPROTO_ICMPV6) {
 		return PACKET_INVALID;
 	}
 
+	// allowed prefix:
+	// ND_OPT_SOURCE_LINKADDR
+	// ND_OPT_TARGET_LINKADDR
+	// ND_OPT_PREFIX_INFORMATION only one has variable length
+	// ND_OPT_MTU
 	ra = (struct nd_router_advert *) &ipv6[1];
 	if (ra->nd_ra_type != ND_ROUTER_ADVERT) {
 		return PACKET_INVALID;
 	}
 
-	memcpy(&chksum, ra, sizeof(struct nd_router_advert));
-	chksum.nd_ra_cksum = 0;
+	c_opt = opt = (struct nd_opt_hdr *) &ra[1];
+	opt_len = len -
+		  (4 * ip_hdr->ip_hl +
+		   sizeof(struct ip6_hdr) +
+		   sizeof(struct nd_router_advert));
+	opt_offset = 0;
+	while (1) {
+		if (opt_offset >= opt_len) break;
+
+		if (c_opt->nd_opt_type == ND_OPT_PREFIX_INFORMATION) {
+			has_prefix = 1;
+			break;
+		} else if (c_opt->nd_opt_type == ND_OPT_MTU) {
+			opt_offset += 4;
+		}
+
+		opt_offset += 4 * c_opt->nd_opt_len;
+		c_opt = (struct nd_opt_hdr *) ((char *) opt + opt_offset);
+	}
+
+	if (opt_offset > opt_len) return PACKET_INVALID;
+	if (!has_prefix) return PACKET_INVALID;
+
+	tmp_chksum = ra->nd_ra_cksum;
+	ra->nd_ra_cksum = 0;
 	calculated_sum = icmp_checksum(
 	    (unsigned short *)ipv6,
-	    sizeof(struct ip6_hdr) + sizeof(struct nd_router_solicit));
+	    sizeof(struct ip6_hdr) + sizeof(struct nd_router_advert) + opt_len);
+	ra->nd_ra_cksum = tmp_chksum;
+
 	if (calculated_sum != ra->nd_ra_cksum) {
 		return PACKET_INVALID;
 	}
@@ -180,6 +217,9 @@ static int isatap_validate_packet(const struct ip *ip_hdr, uint32_t len,
 #define FIELD_ICMP_RA_LIFETIME "icmp_ra_life"
 #define FIELD_ICMP_RA_REACHABLE "icmp_ra_reach"
 #define FIELD_ICMP_RA_RETRANS "icmp_ra_retrans"
+#define FIELD_ISATAP_PREFIX "isatap_prefix"
+#define FIELD_ISATAP_PREFIX_LEN "isatap_prefix_len"
+#define FIELD_ISATAP_MTU "isatap_mtu"
 
 #define NEED_FREE 1
 #define NO_NEED_FREE 0
@@ -190,30 +230,32 @@ static void isatap_process_packet(const u_char *packet, UNUSED uint32_t len,
 				  UNUSED uint32_t *validation,
 				  UNUSED struct timespec ts)
 {
+
 	struct ip *ipv4 = (struct ip *)&packet[sizeof(struct ether_header)];
 	struct ip6_hdr *ipv6 =
 	    (struct ip6_hdr *)((char *)ipv4 + 4 * ipv4->ip_hl);
-	// TODO: more extensions until icmpv6
+
 	struct nd_router_advert *ra = (struct nd_router_advert *) &ipv6[1];
 
+	struct nd_opt_hdr *opt = (struct nd_opt_hdr *) &ra[1];
+	struct nd_opt_hdr *c_opt = opt;
+	struct nd_opt_prefix_info *prefix;
+	struct nd_opt_mtu *mtu = NULL;
+	size_t opt_offset;
+	size_t opt_len;
+
 	char *ipv4_saddr, *ipv4_daddr;
-	char *ipv6_saddr = xmalloc(48), *ipv6_daddr = xmalloc(48);
-	char *clsfi = xmalloc(16);
-	strncpy(clsfi, "isatap response", 16);
+	char *ipv6_saddr = xmalloc(48),
+	     *ipv6_daddr = xmalloc(48),
+	     *prefix_str = xmalloc(48);
 
 	// since this is a response package, we have to revert src and dst
 	ipv4_daddr = make_ip_str(ipv4->ip_src.s_addr);
 	ipv4_saddr = make_ip_str(ipv4->ip_dst.s_addr);
-	sprintf(ipv6_daddr, "%04X:%04X:%04X:%04X:%04X:%04X:%04X:%04X",
-		ipv6->ip6_src.s6_addr16[0], ipv6->ip6_src.s6_addr16[1],
-		ipv6->ip6_src.s6_addr16[2], ipv6->ip6_src.s6_addr16[3],
-		ipv6->ip6_src.s6_addr16[4], ipv6->ip6_src.s6_addr16[5],
-		ipv6->ip6_src.s6_addr16[6], ipv6->ip6_src.s6_addr16[7]);
-	sprintf(ipv6_saddr, "%04X:%04X:%04X:%04X:%04X:%04X:%04X:%04X",
-		ipv6->ip6_dst.s6_addr16[0], ipv6->ip6_dst.s6_addr16[1],
-		ipv6->ip6_dst.s6_addr16[2], ipv6->ip6_dst.s6_addr16[3],
-		ipv6->ip6_dst.s6_addr16[4], ipv6->ip6_dst.s6_addr16[5],
-		ipv6->ip6_dst.s6_addr16[6], ipv6->ip6_dst.s6_addr16[7]);
+	snprintf(ipv6_daddr, 48, "%04X:%04X:%04X:%04X:%04X:%04X:%04X:%04X",
+		ipv6->ip6_src.s6_addr16);
+	snprintf(ipv6_saddr, 48, "%04X:%04X:%04X:%04X:%04X:%04X:%04X:%04X",
+		ipv6->ip6_dst.s6_addr16);
 
 	fs_add_string(fs, FIELD_IP4_SADDR, ipv4_saddr, NEED_FREE);
 	fs_add_string(fs, FIELD_IP4_DADDR, ipv4_daddr, NEED_FREE);
@@ -225,6 +267,36 @@ static void isatap_process_packet(const u_char *packet, UNUSED uint32_t len,
 	fs_add_uint64(fs, FIELD_ICMP_RA_CURHOP, ra->nd_ra_curhoplimit);
 	fs_add_bool(fs, FIELD_ICMP_RA_FLAG_M, ra->nd_ra_flags_reserved & ND_RA_FLAG_MANAGED);
 	fs_add_bool(fs, FIELD_ICMP_RA_FLAG_O, ra->nd_ra_flags_reserved & ND_RA_FLAG_OTHER);
+
+	opt_len = len -
+		  (4 * ipv4->ip_hl +
+		   sizeof(struct ip6_hdr) +
+		   sizeof(struct nd_router_advert));
+	opt_offset = 0;
+	while (1) {
+		if (opt_offset >= opt_len) break;
+
+		if (c_opt->nd_opt_type == ND_OPT_PREFIX_INFORMATION) {
+			prefix = (struct nd_opt_prefix_info *) c_opt;
+			snprintf(prefix_str, 48, "%04X:%04X:%04X:%04X:%04X:%04X:%04X:%04X",
+				prefix->nd_opt_pi_prefix.s6_addr16);
+			fs_add_string(fs, FIELD_ISATAP_PREFIX, prefix_str, NEED_FREE);
+			fs_add_uint64(fs, FIELD_ISATAP_PREFIX_LEN, prefix->nd_opt_pi_prefix_len);
+
+			opt_offset += 16;
+		} else if (c_opt->nd_opt_type == ND_OPT_MTU) {
+			mtu = (struct nd_opt_mtu *) c_opt;
+			fs_add_uint64(fs, FIELD_ISATAP_MTU, mtu->nd_opt_mtu_mtu);
+			opt_offset += 4;
+		}
+
+		opt_offset += 4 * c_opt->nd_opt_len;
+		c_opt = (struct nd_opt_hdr *) ((char *) opt + opt_offset);
+	}
+
+	if (!mtu) {
+		fs_add_null(fs, FIELD_ISATAP_MTU);
+	}
 
 	fs_add_constchar(fs, "classification", "isatap response");
 	fs_add_bool(fs, "success", 1);
@@ -240,9 +312,12 @@ static fielddef_t fields[] = {
     {.name = FIELD_ICMP_RA_CURHOP, .type = "int", .desc = "cur hop limit"},
     {.name = FIELD_ICMP_RA_FLAG_M, .type = "bool", .desc = "managed address configuration"},
     {.name = FIELD_ICMP_RA_FLAG_O, .type = "bool", .desc = "other configuration"},
-    {.name = FIELD_ICMP_RA_LIFETIME, .type = "int", .desc = "icmp message sub type code"},
-    {.name = FIELD_ICMP_RA_REACHABLE, .type = "int", .desc = "icmp message sub type code"},
-    {.name = FIELD_ICMP_RA_RETRANS, .type = "int", .desc = "icmp message sub type code"},
+    {.name = FIELD_ICMP_RA_LIFETIME, .type = "int", .desc = "router lifetime"},
+    {.name = FIELD_ICMP_RA_REACHABLE, .type = "int", .desc = "reachable time"},
+    {.name = FIELD_ICMP_RA_RETRANS, .type = "int", .desc = "retransmit timer"},
+    {.name = FIELD_ISATAP_MTU, .type = "int", .desc = "isatap mtu"},
+    {.name = FIELD_ISATAP_PREFIX, .type = "string", .desc = "isatap prefix"},
+    {.name = FIELD_ISATAP_PREFIX_LEN, .type = "int", .desc = "isatap prefix length"},
     CLASSIFICATION_SUCCESS_FIELDSET_FIELDS,
 };
 
