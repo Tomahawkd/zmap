@@ -15,12 +15,6 @@
 
 static probe_module_t module_isatap;
 
-struct icmp6_chksum_st {
-	struct in6_addr ip6_src;      /* source address */
-	struct in6_addr ip6_dst;      /* destination address */
-	uint32_t ip6_payloadlen;   /* payload length */
-};
-
 //////////////////
 // send functions
 //////////////////
@@ -67,9 +61,16 @@ static int isatap_make_packet(void *buf, size_t *buf_len,
 	struct ip6_hdr *ipv6 = (struct ip6_hdr *) (&ip_header[1]);
 	struct nd_router_solicit *rs = (struct nd_router_solicit *) (&ipv6[1]);
 
-	size_t cksum_len = sizeof(struct icmp6_chksum_st) + sizeof(struct nd_router_solicit);
-	// cksum_len = 44, so there is no trailing zero for icmp6_chksum
-	struct icmp6_chksum_st *cksum = xmalloc(cksum_len);
+	struct icmp6_chksum_st {
+		struct in6_addr ip6_src;      /* source address */
+		struct in6_addr ip6_dst;      /* destination address */
+		uint32_t ip6_payloadlen;   /* payload length */
+		uint16_t zeros_part1;
+		uint8_t zeros_part2;
+		uint8_t nxt_hdr;
+		struct nd_router_solicit rs;
+	} cksum;
+	memset(&cksum, 0, sizeof(struct icmp6_chksum_st));
 
 	// ipv4
 	ip_header->ip_src.s_addr = src_ip;
@@ -87,14 +88,14 @@ static int isatap_make_packet(void *buf, size_t *buf_len,
 	ipv6->ip6_dst.s6_addr32[2] = htonl(0x00005efe);
 	ipv6->ip6_dst.s6_addr32[3] = dst_ip;
 
-	memcpy(&cksum->ip6_src, &ipv6->ip6_src, sizeof(struct in6_addr));
-	memcpy(&cksum->ip6_dst, &ipv6->ip6_dst, sizeof(struct in6_addr));
-	cksum->ip6_payloadlen = htonl(sizeof(struct nd_router_solicit));
-	memcpy(&cksum[1], rs, sizeof(struct nd_router_solicit));
+	memcpy(&cksum.ip6_src, &ipv6->ip6_src, sizeof(struct in6_addr));
+	memcpy(&cksum.ip6_dst, &ipv6->ip6_dst, sizeof(struct in6_addr));
+	cksum.ip6_payloadlen = ipv6->ip6_plen;
+	cksum.nxt_hdr = ipv6->ip6_nxt;
+	memcpy(&cksum.rs, rs, sizeof(struct nd_router_solicit));
 
 	rs->nd_rs_cksum = 0;
-	rs->nd_rs_cksum = icmp_checksum((unsigned short *)cksum, cksum_len);
-	xfree(cksum);
+	rs->nd_rs_cksum = icmp_checksum((unsigned short *)&cksum, sizeof(struct icmp6_chksum_st));
 
 	ip_header->ip_sum = 0;
 	ip_header->ip_sum = zmap_ip_checksum((unsigned short *)ip_header);
