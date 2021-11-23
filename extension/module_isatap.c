@@ -324,7 +324,7 @@ static probe_module_t module_isatap = {
     .name = "isatap",
     .max_packet_length =
 	sizeof(struct ip) + sizeof(struct ip6_hdr) + sizeof(struct nd_router_solicit),
-    .pcap_filter = "ip || ipv6 || icmpv6",
+    .pcap_filter = "icmp6[icmp6type] = icmp6-routeradvert",
     .pcap_snaplen = 1500,
     .port_args = 0,
     .global_initialize = NULL,
