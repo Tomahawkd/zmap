@@ -36,7 +36,7 @@ static int isatap_thread_initialize(void *buf, macaddr_t *src,
 
 	// version(4), traffic class(8), flow id(20)
 	// 6_00_00000
-	ipv6->ip6_flow = 0x60000000;
+	ipv6->ip6_flow = htonl(0x60000000);
 	ipv6->ip6_plen = htons(sizeof(struct nd_router_solicit));
 	ipv6->ip6_nxt = IPPROTO_ICMPV6;
 	// default hops
