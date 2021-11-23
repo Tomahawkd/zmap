@@ -172,10 +172,10 @@ static int isatap_validate_packet(const struct ip *ip_hdr, uint32_t len,
 	}
 
 	// allowed prefix:
-	// ND_OPT_SOURCE_LINKADDR
-	// ND_OPT_TARGET_LINKADDR
-	// ND_OPT_PREFIX_INFORMATION only one has variable length
-	// ND_OPT_MTU
+	// ND_OPT_SOURCE_LINKADDR: 4 * c_opt->nd_opt_len
+	// ND_OPT_TARGET_LINKADDR: 4 * c_opt->nd_opt_len
+	// ND_OPT_PREFIX_INFORMATION: 4 * c_opt->nd_opt_len + 16(prefix)
+	// ND_OPT_MTU: 4 * c_opt->nd_opt_len + 4(mtu)
 	ra = (struct nd_router_advert *) &ipv6[1];
 	if (ra->nd_ra_type != ND_ROUTER_ADVERT) {
 		return PACKET_INVALID;
