@@ -18,7 +18,7 @@ static probe_module_t module_isatap;
 struct icmp6_chksum_st {
 	struct in6_addr ip6_src;      /* source address */
 	struct in6_addr ip6_dst;      /* destination address */
-	uint16_t ip6_payloadlen;   /* payload length */
+	uint32_t ip6_payloadlen;   /* payload length */
 };
 
 //////////////////
@@ -52,6 +52,7 @@ static int isatap_thread_initialize(void *buf, macaddr_t *src,
 	// router solicitation message
 	rs->nd_rs_type = ND_ROUTER_SOLICIT;
 	rs->nd_rs_code = 0;
+	rs->nd_rs_hdr.icmp6_data32[0] = 0;
 
 	return EXIT_SUCCESS;
 }
@@ -88,7 +89,7 @@ static int isatap_make_packet(void *buf, size_t *buf_len,
 
 	memcpy(&cksum->ip6_src, &ipv6->ip6_src, sizeof(struct in6_addr));
 	memcpy(&cksum->ip6_dst, &ipv6->ip6_dst, sizeof(struct in6_addr));
-	memcpy(&cksum->ip6_payloadlen, &ipv6->ip6_plen, sizeof(uint16_t));
+	cksum->ip6_payloadlen = htonl(sizeof(struct nd_router_solicit));
 	memcpy(&cksum[1], rs, sizeof(struct nd_router_solicit));
 
 	rs->nd_rs_cksum = 0;
@@ -140,6 +141,8 @@ static void isatap_print_packet(FILE *fp, void *buf)
 static int isatap_validate_packet(const struct ip *ip_hdr, uint32_t len,
 				  uint32_t *src_ip, UNUSED uint32_t *validation)
 {
+
+	const uint32_t src_ipaddr = *src_ip;
 	struct ip6_hdr *ipv6;
 	struct nd_router_advert *ra;
 	struct nd_opt_hdr *opt;
@@ -152,7 +155,7 @@ static int isatap_validate_packet(const struct ip *ip_hdr, uint32_t len,
 		return PACKET_INVALID;
 	}
 
-	if (ip_hdr->ip_dst.s_addr != *src_ip) {
+	if (ip_hdr->ip_dst.s_addr != src_ipaddr) {
 		return PACKET_INVALID;
 	}
 
